@@ -5,26 +5,27 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Tcp.{IncomingConnection, ServerBinding}
 import akka.stream.scaladsl.{Flow, Framing, Source, Tcp}
 import akka.util.ByteString
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
 
-object Server extends App {
-  implicit val as = ActorSystem()
-  implicit val materializer = ActorMaterializer()
+object Server extends App with StrictLogging {
+  implicit val as: ActorSystem = ActorSystem()
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   val connections: Source[IncomingConnection, Future[ServerBinding]] =
     Tcp().bind("localhost", 3000)
 
   connections runForeach { connection ⇒
-    println(s"New connection from: ${connection.remoteAddress}")
+    logger.info(s"New connection from: ${connection.remoteAddress}")
 
     val echo = Flow[ByteString]
       .via(Framing.delimiter(
         ByteString("\n"),
         maximumFrameLength = 256,
         allowTruncation = true))
-      .map(_.utf8String)
-      .map(_ + "!!!\n")
+      .map()
+      .via(new AuthProcess())
       .map(ByteString(_))
 
     connection.handleWith(echo)
