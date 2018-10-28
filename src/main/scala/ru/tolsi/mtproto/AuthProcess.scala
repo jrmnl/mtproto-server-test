@@ -46,7 +46,7 @@ class AuthProcess extends GraphStage[FlowShape[MTProtoInMessage, MTProtoOutMessa
         case _: ReqPq => Right(WaitForReqDHParams -> ResPq.createRandom)
         case _ => Left("I'm wait for ReqPq, not this")
       }
-      case WaitForReqDHParams => {
+      case WaitForReqDHParams => message match {
         case _: ReqPq => Left("I'm wait for ReqDHParams, not this")
         case _: ReqDHParams => Left("Done!")
       }
