@@ -1,4 +1,4 @@
-package ru.tolsi.mtproto
+package ru.tolsi.mtproto.util
 
 case class ByteString(arr: Array[Byte]) {
   override def equals(a: Any): Boolean = a match {

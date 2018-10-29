@@ -3,6 +3,7 @@ package ru.tolsi.mtproto
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.typesafe.scalalogging.StrictLogging
+import ru.tolsi.mtproto.messages._
 
 sealed trait AuthStep
 
@@ -10,12 +11,12 @@ case object WaitForReqPq extends AuthStep
 
 case object WaitForReqDHParams extends AuthStep
 
-class AuthProcess extends GraphStage[FlowShape[MTProtoInMessage, MTProtoOutMessage]] with StrictLogging {
+class AuthProcess extends GraphStage[FlowShape[MTProtoRequestMessage, MTProtoResponceMessage]] with StrictLogging {
 
-  val in: Inlet[MTProtoInMessage] = Inlet[MTProtoInMessage]("in")
-  val out: Outlet[MTProtoOutMessage] = Outlet[MTProtoOutMessage]("out")
+  val in: Inlet[MTProtoRequestMessage] = Inlet[MTProtoRequestMessage]("in")
+  val out: Outlet[MTProtoResponceMessage] = Outlet[MTProtoResponceMessage]("out")
 
-  override val shape: FlowShape[MTProtoInMessage, MTProtoOutMessage] = FlowShape.of(in, out)
+  override val shape: FlowShape[MTProtoRequestMessage, MTProtoResponceMessage] = FlowShape.of(in, out)
 
   override def createLogic(attr: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) {
@@ -40,7 +41,7 @@ class AuthProcess extends GraphStage[FlowShape[MTProtoInMessage, MTProtoOutMessa
       })
     }
 
-  private def authLogic(currentStep: AuthStep, message: MTProtoInMessage): Either[String, (AuthStep, MTProtoOutMessage)] = {
+  private def authLogic(currentStep: AuthStep, message: MTProtoRequestMessage): Either[String, (AuthStep, MTProtoResponceMessage)] = {
     currentStep match {
       case WaitForReqPq => message match {
         case _: ReqPq => Right(WaitForReqDHParams -> ResPq.createRandom)

@@ -1,34 +1,17 @@
-package ru.tolsi
+package ru.tolsi.mtproto
 
 import java.math.BigInteger
 
-import scodec.Codec
-import scodec.bits.ByteVector
+import ru.tolsi.mtproto.util.{ByteString, _}
+import scodec._
+import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
-import scodec.bits._
 import shapeless.HNil
 
-import scala.language.implicitConversions
-import scala.util.Random
+package object messages {
+  trait MTProtoRequestMessage
 
-package object mtproto {
-  private val r = new Random()
-
-  def createRandomString(n: Int): String = r.alphanumeric.take(n).mkString
-
-  def createRandomBytes(n: Int): Array[Byte] = {
-    val a = new Array[Byte](n)
-    r.nextBytes(a)
-    a
-  }
-
-  implicit class RichByteArray(val self: Array[Byte]) extends AnyVal {
-    def toHex: String = self.map("%02X" format _).mkString
-  }
-
-  implicit class RichCodecByteVector(val codec: Codec[ByteVector]) extends AnyVal {
-    def asByteString: Codec[ByteString] = codec.xmap[ByteString](bv => ByteString(bv.toArray), bs => ByteVector(bs.arr))
-  }
+  trait MTProtoResponceMessage
 
   def bytesString(n: Int): Codec[ByteString] = bytes(n).asByteString
   def bytesString: Codec[ByteString] = bytes.asByteString
@@ -45,4 +28,9 @@ package object mtproto {
 
   def tlBytesAsBigInt: Codec[BigInt] = (variableSizeBytes(int8, bytes) :: constant(BitVector(Array.fill[Byte](3)(0)))).dropUnits.
     xmap(h => BigInt(1, h.head.toArray), bi => ByteVector(fromBigInt(bi.bigInteger)) :: HNil)
+
+  // todo merge with prev by size
+  // todo fix align
+  def tlBytesStringAsBigInt: Codec[BigInt] = variableSizeBytes(int32L, bytes).
+    xmap(h => BigInt(1, h.toArray), bi => ByteVector(fromBigInt(bi.bigInteger)))
 }
