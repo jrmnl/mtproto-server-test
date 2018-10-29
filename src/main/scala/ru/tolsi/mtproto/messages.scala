@@ -1,11 +1,13 @@
 package ru.tolsi.mtproto
 
 import java.nio.ByteBuffer
-import java.security.interfaces.RSAPublicKey
 
 import scodec._
 import scodec.bits.{ByteVector, _}
 import scodec.codecs._
+import ru.tolsi.mtproto._
+import ru.tolsi.mtproto.crypto.SHA1
+import ru.tolsi.mtproto.crypto.rsa.RSAPublicKey
 
 sealed trait MTProtoInMessage
 
@@ -66,7 +68,7 @@ object ReqDHParams {
       ("server_nonce" | bytesString(16)) ::
       ("p" | tlBytesAsBigInt) ::
       ("q" | tlBytesAsBigInt) ::
-      ("finger_print" | int64) ::
+      ("public_key_fingerprint" | int64) ::
       ("encrypted_data" | EncyptedPqInnerData.encryptedPqInnerDataCodec)
   }.dropUnits.as[ReqDHParams]
 }
@@ -92,7 +94,7 @@ case class PqInnerData(pq: BigInt, p: BigInt, q: BigInt, nonce: ByteString, serv
 object EncyptedPqInnerData {
   def encrypt(innerData: PqInnerData, key: RSAPublicKey): EncyptedPqInnerData = {
     val serialized = PqInnerData.pqInnerDataCodec.encode(innerData).require.toByteArray // 96 bytes
-    val hash = crypto.sha1(serialized) // 20 bytes
+    val hash = SHA1.hash(serialized) // 20 bytes
     val seed = createRandomBytes(255 - hash.length - serialized.length) // 139 bytes
 
     val byteBuffer = ByteBuffer.allocate(255)
@@ -101,7 +103,7 @@ object EncyptedPqInnerData {
     byteBuffer.put(serialized)
     val data = byteBuffer.array()
 
-    EncyptedPqInnerData(ByteString(crypto.rsa(data, key)))
+    EncyptedPqInnerData(ByteString(key.encrypt(data)))
   }
 
   val encryptedPqInnerDataCodec: Codec[EncyptedPqInnerData] = {
