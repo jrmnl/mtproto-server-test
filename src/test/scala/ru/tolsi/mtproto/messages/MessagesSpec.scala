@@ -1,9 +1,8 @@
-package ru.tolsi.mtproto
+package ru.tolsi.mtproto.messages
 
 import org.scalatest.{Matchers, WordSpec}
 import ru.tolsi.mtproto.crypto.rsa.RSAKeyPair
 import ru.tolsi.mtproto.messages.serialization.codecs
-import ru.tolsi.mtproto.messages._
 import ru.tolsi.mtproto.util._
 import scodec.bits._
 

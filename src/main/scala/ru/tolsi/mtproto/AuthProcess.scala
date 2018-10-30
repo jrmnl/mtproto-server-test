@@ -11,12 +11,14 @@ case object WaitForReqPq extends AuthStep
 
 case object WaitForReqDHParams extends AuthStep
 
-class AuthProcess extends GraphStage[FlowShape[MTProtoRequestMessage, MTProtoResponseMessage]] with StrictLogging {
+case object Done extends AuthStep
 
-  val in: Inlet[MTProtoRequestMessage] = Inlet[MTProtoRequestMessage]("in")
+class AuthProcess extends GraphStage[FlowShape[UnencryptedMessage, MTProtoResponseMessage]] with StrictLogging {
+
+  val in: Inlet[UnencryptedMessage] = Inlet[UnencryptedMessage]("in")
   val out: Outlet[MTProtoResponseMessage] = Outlet[MTProtoResponseMessage]("out")
 
-  override val shape: FlowShape[MTProtoRequestMessage, MTProtoResponseMessage] = FlowShape.of(in, out)
+  override val shape: FlowShape[UnencryptedMessage, MTProtoResponseMessage] = FlowShape.of(in, out)
 
   override def createLogic(attr: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) {
@@ -24,13 +26,17 @@ class AuthProcess extends GraphStage[FlowShape[MTProtoRequestMessage, MTProtoRes
       setHandler(in, new InHandler {
         override def onPush(): Unit = {
           val msg = grab(in)
-          authLogic(step, msg) match {
-            case Right((nextStep, message)) =>
-              step = nextStep
-              push(out, message)
+          authLogic(step, msg.message) match {
+            case Right((nextStep, messageOpt)) =>
+              if (nextStep == Done) {
+                completeStage()
+              } else {
+                step = nextStep
+                messageOpt.foreach(m => push(out, m))
+              }
             case Left(error) =>
-              logger.info(error)
-              completeStage()
+              logger.error(error)
+              throw new IllegalArgumentException(s"Cannot process message '${msg.message}': $error")
           }
         }
       })
@@ -41,15 +47,15 @@ class AuthProcess extends GraphStage[FlowShape[MTProtoRequestMessage, MTProtoRes
       })
     }
 
-  private def authLogic(currentStep: AuthStep, message: MTProtoRequestMessage): Either[String, (AuthStep, MTProtoResponseMessage)] = {
+  private def authLogic(currentStep: AuthStep, message: MTProtoObject): Either[String, (AuthStep, Option[MTProtoResponseMessage])] = {
     currentStep match {
       case WaitForReqPq => message match {
-        case _: ReqPq => Right(WaitForReqDHParams -> ResPq.createRandom)
-        case _ => Left("I'm wait for ReqPq, not this")
+        case ReqPq(nonce) => Right(WaitForReqDHParams -> Some(ResPq.createRandom.copy(nonce = nonce)))
+        case _ => Left("I'm wait for ReqPq")
       }
       case WaitForReqDHParams => message match {
-        case _: ReqPq => Left("I'm wait for ReqDHParams, not this")
-        case _: ReqDHParams => Left("Done!")
+        case _: ReqDHParams => Right(Done -> None)
+        case _ => Left("I'm wait for ReqDHParams")
       }
     }
   }

@@ -1,8 +1,6 @@
 package ru.tolsi.mtproto.messages
 
 import ru.tolsi.mtproto.util.ByteString
-import scodec.Codec
-import scodec.codecs._
 
 
 object ReqPq {

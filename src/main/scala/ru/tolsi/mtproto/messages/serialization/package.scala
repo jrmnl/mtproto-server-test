@@ -26,11 +26,16 @@ package object serialization {
       case scodec.DecodeResult(value, _) => value match {
         case ReqPq.classId => decode(codecs.reqPqCodec)
         case ReqDHParams.classId => decode(codecs.reqDHParamsCodec)
+        // responses decoding for test purposes mostly
+        case ResPq.classId => decode(codecs.resPqCodec)
         case _ => Failure(Err(s"Can't deserialize message with code 0x${bv.take(4).toHex}"))
       }
     }
   }, {
     case resPq: ResPq => codecs.resPqCodec.encode(resPq).map(_.bytes)
+    // requests encoding for test purposes mostly
+    case reqPq: ReqPq => codecs.reqPqCodec.encode(reqPq).map(_.bytes)
+    case reqDHParams: ReqDHParams => codecs.reqDHParamsCodec.encode(reqDHParams).map(_.bytes)
     case m => Failure(Err(s"Can't serialize message $m"))
   })
 }

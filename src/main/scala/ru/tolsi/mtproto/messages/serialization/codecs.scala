@@ -1,10 +1,9 @@
 package ru.tolsi.mtproto.messages.serialization
 
 import ru.tolsi.mtproto.crypto.rsa.RSAPublicKey
-import ru.tolsi.mtproto.messages._
+import ru.tolsi.mtproto.messages.{RSAPublicKey => RSAPublicKeyMessage, _}
 import scodec.Codec
 import scodec.codecs._
-import ru.tolsi.mtproto.messages.{RSAPublicKey => RSAPublicKeyMessage}
 
 object codecs {
   val encryptedPqInnerDataCodec: Codec[EncyptedPqInnerData] = {
