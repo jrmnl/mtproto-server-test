@@ -7,7 +7,7 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, SizeBound}
 import scodec.bits.BitVector
 import scodec.codecs.{byte, sizedList}
 
-final object TgBytesSizeCodec extends Codec[Int] {
+object TlBytesSizeCodec extends Codec[Int] {
   override def encode(value: Int): Attempt[BitVector] = {
     // todo check max value?
     if (value >= 254) {
@@ -26,10 +26,10 @@ final object TgBytesSizeCodec extends Codec[Int] {
 
   override def decode(bits: BitVector): Attempt[DecodeResult[Int]] = {
     (byte flatMap { first =>
-      val len = first.toInt
+      val len = getIntFromByte(first)
       if (len >= 254 || len == 0) {
         sizedList(3, byte).map { sizeBytes => {
-          val res = sizeBytes(0).toInt | (sizeBytes(1).toInt << 8) | (sizeBytes(2).toInt << 16)
+          val res = getIntFromByte(sizeBytes(0)) | (getIntFromByte(sizeBytes(1)) << 8) | (getIntFromByte(sizeBytes(2)) << 16)
           res
         }}
       } else {
@@ -37,4 +37,6 @@ final object TgBytesSizeCodec extends Codec[Int] {
       }
     }).decode(bits)
   }
+
+  private def getIntFromByte(b: Byte): Int = if (b >= 0) b else b.toInt + 256
 }

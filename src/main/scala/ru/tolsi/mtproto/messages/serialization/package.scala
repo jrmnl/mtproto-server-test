@@ -11,7 +11,6 @@ import ru.tolsi.mtproto.util._
 
 
 package object serialization {
-  def tlBytesCodec[A](value: Codec[A]) = new TlBytesCodec(value)
 
   def bytesString(n: Int): Codec[ByteString] = bytes(n).asByteString
 
@@ -25,6 +24,8 @@ package object serialization {
       res2
     } else array
   }
+
+  def tlBytesCodec[A](value: Codec[A]) = new TlBytesCodec(value)
 
   def tlBytesString: Codec[ByteString] = tlBytesCodec(bytes).asByteString
 
