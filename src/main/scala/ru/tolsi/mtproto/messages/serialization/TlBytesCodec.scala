@@ -9,8 +9,12 @@ final class TlBytesCodec[A](valueCodec: Codec[A]) extends Codec[A] {
     val extra = if (size >= 254) 4 else 1
     val mod = (size + extra) % 4
     fixedSizeBytes(size, valueCodec).flatMap(a =>
-      ignore((4 - mod) * 8)
-        .map(_ => a))
+      if (mod > 0) {
+        ignore((4 - mod) * 8)
+          .map(_ => a)
+      } else {
+        provide(a)
+      })
   }
 
   def sizeBound: SizeBound = byte.sizeBound.atLeast
@@ -18,7 +22,14 @@ final class TlBytesCodec[A](valueCodec: Codec[A]) extends Codec[A] {
   override def encode(a: A): Attempt[BitVector] = for {
     encA <- valueCodec.encode(a)
     encSize <- TlBytesSizeCodec.encode(encA.bytes.size.intValue())
-    alignment = BitVector(Array.fill(4 - ((encA.bytes.size + encSize.bytes.size) % 4).intValue())(0.toByte))
+    alignment = {
+      val mod = ((encA.bytes.size + encSize.bytes.size) % 4).intValue()
+      if (mod > 0) {
+        BitVector(Array.fill(4 - mod)(0.toByte))
+      } else {
+        BitVector.empty
+      }
+    }
   } yield encSize ++ encA ++ alignment
 
   override def decode(buffer: BitVector): Attempt[DecodeResult[A]] = decoder.decode(buffer)
