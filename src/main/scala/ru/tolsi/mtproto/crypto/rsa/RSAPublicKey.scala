@@ -1,12 +1,11 @@
 package ru.tolsi.mtproto.crypto.rsa
 
-import java.nio.{ByteBuffer, ByteOrder}
 import java.security.interfaces.{RSAPublicKey => JavaRSAPublicKey}
 import java.security.spec.RSAPublicKeySpec
 
 import javax.crypto.Cipher
 import ru.tolsi.mtproto.crypto.SHA1
-import ru.tolsi.mtproto.messages.{RSAPublicKey => RSAPublicKeyMessage}
+import ru.tolsi.mtproto.messages.serialization.codecs
 
 object RSAPublicKey {
   def apply(javaRSAPublicKey: JavaRSAPublicKey): RSAPublicKey = new RSAPublicKey(
@@ -21,7 +20,7 @@ case class RSAPublicKey(publicKey: BigInt, exponent: BigInt) {
   }
 
   def fingerprint: Long = {
-    val serialized = RSAPublicKeyMessage.rsaPublicKeyCodec.encode(this).require.toByteArray
+    val serialized = codecs.rsaPublicKeyCodec.encode(this).require.toByteArray
     val bytes = SHA1.hash(serialized).takeRight(8)
     bytesToLong(bytes)
   }

@@ -1,7 +1,5 @@
 package ru.tolsi.mtproto
 
-import java.nio.ByteBuffer
-
 import scodec.Codec
 import scodec.bits.ByteVector
 

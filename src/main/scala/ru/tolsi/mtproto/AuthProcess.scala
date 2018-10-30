@@ -11,12 +11,12 @@ case object WaitForReqPq extends AuthStep
 
 case object WaitForReqDHParams extends AuthStep
 
-class AuthProcess extends GraphStage[FlowShape[MTProtoRequestMessage, MTProtoResponceMessage]] with StrictLogging {
+class AuthProcess extends GraphStage[FlowShape[MTProtoRequestMessage, MTProtoResponseMessage]] with StrictLogging {
 
   val in: Inlet[MTProtoRequestMessage] = Inlet[MTProtoRequestMessage]("in")
-  val out: Outlet[MTProtoResponceMessage] = Outlet[MTProtoResponceMessage]("out")
+  val out: Outlet[MTProtoResponseMessage] = Outlet[MTProtoResponseMessage]("out")
 
-  override val shape: FlowShape[MTProtoRequestMessage, MTProtoResponceMessage] = FlowShape.of(in, out)
+  override val shape: FlowShape[MTProtoRequestMessage, MTProtoResponseMessage] = FlowShape.of(in, out)
 
   override def createLogic(attr: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) {
@@ -41,7 +41,7 @@ class AuthProcess extends GraphStage[FlowShape[MTProtoRequestMessage, MTProtoRes
       })
     }
 
-  private def authLogic(currentStep: AuthStep, message: MTProtoRequestMessage): Either[String, (AuthStep, MTProtoResponceMessage)] = {
+  private def authLogic(currentStep: AuthStep, message: MTProtoRequestMessage): Either[String, (AuthStep, MTProtoResponseMessage)] = {
     currentStep match {
       case WaitForReqPq => message match {
         case _: ReqPq => Right(WaitForReqDHParams -> ResPq.createRandom)
