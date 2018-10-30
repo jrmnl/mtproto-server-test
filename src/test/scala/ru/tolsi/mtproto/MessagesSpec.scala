@@ -1,7 +1,6 @@
 package ru.tolsi.mtproto
 
 import org.scalatest.{Matchers, WordSpec}
-import ru.tolsi.mtproto.crypto.publicRSAKeys
 import ru.tolsi.mtproto.crypto.rsa.RSAKeyPair
 import ru.tolsi.mtproto.messages.serialization.codecs
 import ru.tolsi.mtproto.messages._
@@ -30,6 +29,20 @@ class MessagesSpec extends WordSpec with Matchers {
       val blob = hex"789746603e0549828cca27e966b301a48fece2fc".bits
       val message = ReqPq(nonce)
       codecs.reqPqCodec.decode(blob).require.value should be(message)
+    }
+  }
+
+  "UnencryptedMessage codec" should {
+    "encode a valid message" in {
+      val blob = hex"00000000000000004a967027c47ae55140000000632416053e0549828cca27e966b301a48fece2fcdc714e5c6937631e37ce313f3b95ab0e082a78327b14155ffb00000015c4b51c01000000216be86c022bb4c3".bits
+      val message = UnencryptedMessage(0, 0x51e57ac42770964aL, ResPq(nonce, serverNonce, pq, TlVector(List(0xc3b42b026ce86b21L))))
+      codecs.unencryptedMessageCodec.encode(message).require should be(blob)
+    }
+
+    "decode a valid message" in {
+      val blob = hex"000000000000000001c8831ec97ae55114000000789746603e0549828cca27e966b301a48fece2fc".bits
+      val message = UnencryptedMessage(0, 0x51E57AC91E83C801L, ReqPq(nonce))
+      codecs.unencryptedMessageCodec.decode(blob).require.value should be(message)
     }
   }
 

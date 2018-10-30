@@ -53,8 +53,7 @@ object codecs {
   val unencryptedMessageCodec: Codec[UnencryptedMessage] = {
     ("auth_key_id" | int64L) ::
       ("message_id" | int64L) ::
-      ("message_data_length" | int32L) ::
-      ("message_data" | bytes)
+      ("message_data" | tlObject)
   }.as[UnencryptedMessage]
 
   def tlVectorCodec[T](valueC: Codec[T]): Codec[TlVector[T]] = {
