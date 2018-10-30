@@ -22,7 +22,7 @@ object codecs {
   }.dropUnits.as[PqInnerData]
 
   val reqDHParamsCodec: Codec[ReqDHParams] = {
-    ("constructor number" | constant(int32L.encode(PqInnerData.classId).require)) ::
+    ("constructor number" | constant(int32L.encode(ReqDHParams.classId).require)) ::
       ("nonce" | bytesString(16)) ::
       ("server_nonce" | bytesString(16)) ::
       ("p" | tlBytesAsBigInt) ::

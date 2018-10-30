@@ -39,4 +39,6 @@ object TlBytesSizeCodec extends Codec[Int] {
   }
 
   private def getIntFromByte(b: Byte): Int = if (b >= 0) b else b.toInt + 256
+
+  override def toString: String = s"tlBytesSizeCodec"
 }
