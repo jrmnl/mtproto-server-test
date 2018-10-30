@@ -18,8 +18,7 @@ object TelegramServer extends StrictLogging {
     .via(Framing.lengthField(4, 16, 1000))
     .map(m => codecs.unencryptedMessageCodec.decode(BitVector(m)).require.value)
     .via(new AuthProcess())
-    .map(m => codecs.unencryptedMessageCodec.encode(UnencryptedMessage(0, 0, m)).require.bytes.toArray)
-    .map(ByteString(_))
+    .map(m => ByteString(codecs.unencryptedMessageCodec.encode(UnencryptedMessage(0, 0, m)).require.bytes.toArray))
 
   def main(args: Array[String]): Unit = {
     implicit val as: ActorSystem = ActorSystem()
@@ -27,6 +26,8 @@ object TelegramServer extends StrictLogging {
 
     val connections: Source[IncomingConnection, Future[ServerBinding]] =
       Tcp().bind("localhost", 3000)
+
+    logger.info("Demo telegram server listen you on 'localhost:3000'")
 
     connections runForeach { connection ⇒
       logger.info(s"New connection from: ${connection.remoteAddress}")
