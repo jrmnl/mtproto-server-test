@@ -1,7 +1,7 @@
 package ru.tolsi.mtproto.crypto.rsa
 
-import java.security.{KeyPairGenerator, SecureRandom}
 import java.security.interfaces.{RSAPrivateKey => JavaRSAPrivateKey, RSAPublicKey => JavaRSAPublicKey}
+import java.security.{KeyPairGenerator, SecureRandom}
 
 object RSAKeyPair {
   def generate(): RSAKeyPair = {

@@ -1,11 +1,10 @@
 package ru.tolsi.mtproto.messages
 
-import ru.tolsi.mtproto.util.ByteString
-import scodec.{Codec, Err}
+import ru.tolsi.mtproto.util.{ByteString, _}
+import scodec.Attempt.Failure
 import scodec.bits.ByteVector
 import scodec.codecs._
-import ru.tolsi.mtproto.util._
-import scodec.Attempt.Failure
+import scodec.{Codec, Err}
 
 
 package object serialization {
@@ -22,6 +21,7 @@ package object serialization {
 
   def tlObject: Codec[MTProtoObject] = variableSizeBytes(int32L, bytes).exmap[MTProtoObject](bv => {
     def decode[T <: MTProtoObject](codec: Codec[T]) = codec.decode(bv.bits).map(_.value)
+
     int32L.decode(bv.bits).flatMap {
       case scodec.DecodeResult(value, _) => value match {
         case ReqPq.classId => decode(codecs.reqPqCodec)

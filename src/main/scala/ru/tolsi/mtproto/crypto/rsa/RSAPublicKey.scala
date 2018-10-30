@@ -13,6 +13,7 @@ object RSAPublicKey {
     javaRSAPublicKey.getPublicExponent)
 
 }
+
 case class RSAPublicKey(publicKey: BigInt, exponent: BigInt) {
 
   def asJavaRSAKey(): JavaRSAPublicKey = {

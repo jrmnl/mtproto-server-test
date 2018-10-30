@@ -1,8 +1,8 @@
 package ru.tolsi.mtproto.messages.serialization
 
-import scodec.{Attempt, Codec, DecodeResult, SizeBound}
 import scodec.bits.BitVector
 import scodec.codecs._
+import scodec.{Attempt, Codec, DecodeResult, SizeBound}
 
 final class TlBytesCodec[A](valueCodec: Codec[A]) extends Codec[A] {
   private val decoder = TlBytesSizeCodec flatMap { size =>
