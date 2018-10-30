@@ -9,7 +9,7 @@ object RSAPublicKey {
 
   val rsaPublicKeyCodec: Codec[CryptoRSAPublicKey] = {
     ("constructor number" | constant(int32L.encode(classId).require)) ::
-      ("modulus" | tlBytesStringAsBigInt) ::
-      ("exponent" | tlBytesStringAsBigInt)
+      ("modulus" | tlBytesAsBigInt) ::
+      ("exponent" | tlBytesAsBigInt)
   }.dropUnits.as[CryptoRSAPublicKey]
 }
