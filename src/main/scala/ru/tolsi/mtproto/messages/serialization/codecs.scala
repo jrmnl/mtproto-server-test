@@ -36,8 +36,7 @@ object codecs {
       ("nonce" | bytesString(16)) ::
       ("server_nonce" | bytesString(16)) ::
       ("pq" | tlBytesAsBigInt) ::
-      // todo it should be a vector
-      ("fingerprints" | bytesString)
+      ("fingerprints" | tlVectorCodec(int64L))
   }.dropUnits.as[ResPq]
 
   val reqPqCodec: Codec[ReqPq] = {
@@ -57,4 +56,9 @@ object codecs {
       ("message_data_length" | int32L) ::
       ("message_data" | bytes)
   }.as[UnencryptedMessage]
+
+  def tlVectorCodec[T](valueC: Codec[T]): Codec[TlVector[T]] = {
+    ("constructor number" | constant(int32L.encode(TlVector.classId).require)) ::
+      ("values" | listOfN(int32L, valueC))
+  }.dropUnits.as[TlVector[T]]
 }

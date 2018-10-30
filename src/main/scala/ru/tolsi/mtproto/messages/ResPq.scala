@@ -10,8 +10,8 @@ object ResPq {
       ByteString(createRandomBytes(16)), // int128
       ByteString(createRandomBytes(16)), // int128
       createRandomBigInt(64), // bytes
-      ByteString(createRandomBytes(4 + 2 * 8))) // long vector = int + (n * long)
+      TlVector(List(createRandomBigInt(64).toLong))) // long vector = int + (n * long)
   }
 }
 
-case class ResPq(nonce: ByteString, serverNonce: ByteString, pq: BigInt, fingerprints: ByteString) extends MTProtoResponseMessage
+case class ResPq(nonce: ByteString, serverNonce: ByteString, pq: BigInt, fingerprints: TlVector[Long]) extends MTProtoResponseMessage
