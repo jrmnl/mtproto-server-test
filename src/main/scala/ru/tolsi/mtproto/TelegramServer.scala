@@ -14,9 +14,10 @@ import scodec.bits.BitVector
 import scala.concurrent.Future
 
 object TelegramServer extends StrictLogging {
+  val lengthField = 4
   private[mtproto] def telegramServerFlow(): Flow[ByteString, ByteString, NotUsed] = Flow[ByteString]
-    .via(Framing.lengthField(4, 16, 1000))
-    .map(m => codecs.unencryptedMessageCodec.decode(BitVector(m)).require.value)
+    .via(Framing.lengthField(lengthField, 0, 1000))
+    .map(m => codecs.unencryptedMessageCodec.decode(BitVector(m.drop(lengthField))).require.value)
     .via(new AuthProcess())
     .map(m => ByteString(codecs.unencryptedMessageCodec.encode(UnencryptedMessage(0, 0, m)).require.bytes.toArray))
 
